@@ -23,22 +23,22 @@ module BtcWallet
       data.dig('chain_stats', 'funded_txo_sum') - data.dig('chain_stats', 'spent_txo_sum')
     end
 
-    def utxos
-      mempool_client.utxos(address)
-    end
-
     def send_amount(to_address, amount)
       selected_utxos, total_in = prepare_utxos
       change = total_in - amount - fee
 
       tx = Bitcoin::Tx.new
-      selected_utxos.each do |utxo|
-        tx_in = Bitcoin::TxIn.new(
-          Bitcoin::OutPoint.new(utxo['txid'].rhex, utxo['vout']),
-          ''
-        )
-        tx.add_txin(tx_in)
-      end
+      add_output(tx, to_address, amount)
+      add_change_output(tx, address) if change > 0
+      result = sign_inputs(tx, selected_utxos)
+
+      logger.info(result.to_json)
+    end
+
+    private
+
+    def utxos
+      mempool_client.utxos(address)
     end
   end
 end
