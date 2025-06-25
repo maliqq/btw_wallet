@@ -20,7 +20,7 @@ module BtcWallet
     def balance
       data = mempool_client.address_info(address)
 
-      data.dig('chain_stats', 'funded_txo_sum') - data.dig('chain_stats', 'spent_txo_sum')
+      data.dig("chain_stats", "funded_txo_sum") - data.dig("chain_stats", "spent_txo_sum")
     end
 
     def send_amount(to_address, amount)

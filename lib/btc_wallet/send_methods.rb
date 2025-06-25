@@ -8,7 +8,7 @@ module BtcWallet
 
       utxos.each do |utxo|
         selected_utxos << utxo
-        total_in += utxo['value']
+        total_in += utxo["value"]
         break if total_in >= amount + fee
       end
 
@@ -18,8 +18,8 @@ module BtcWallet
     def add_inputs(tx, selected_utxos)
       selected_utxos.each do |utxo|
         tx_in = Bitcoin::TxIn.new(
-          Bitcoin::OutPoint.new(utxo['txid'].rhex, utxo['vout']),
-          ''
+          Bitcoin::OutPoint.new(utxo["txid"].rhex, utxo["vout"]),
+          ""
         )
         tx.add_txin(tx_in)
       end
@@ -38,8 +38,8 @@ module BtcWallet
 
     def sign_inputs(tx, selected_utxos)
       selected_utxos.each_with_index do |utxo, i|
-        sighash = tx.sighash_for_witness(i, Bitcoin::Script.parse_from_addr(from_address), utxo['value'], Bitcoin::SIGHASH_TYPE[:all])
-        signature = key.sign(sighash) + [Bitcoin::SIGHASH_TYPE[:all]].pack('C')
+        sighash = tx.sighash_for_witness(i, Bitcoin::Script.parse_from_addr(from_address), utxo["value"], Bitcoin::SIGHASH_TYPE[:all])
+        signature = key.sign(sighash) + [Bitcoin::SIGHASH_TYPE[:all]].pack("C")
         witness = Bitcoin::Witness.new
         witness.stack << signature
         witness.stack << key.pubkey

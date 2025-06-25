@@ -1,4 +1,4 @@
-require 'rest-client'
+require "rest-client"
 
 module BtcWallet
   class MempoolClient
@@ -10,7 +10,7 @@ module BtcWallet
 
     def address_info(address)
       resp = RestClient.get("#{base_addr}/address/#{address}")
-      data = JSON.parse(resp.body)
+      JSON.parse(resp.body)
     end
 
     def utxos(address)
@@ -22,7 +22,7 @@ module BtcWallet
       resp = RestClient.post(
         "#{base_addr}/tx",
         hex,
-        { content_type: 'text/plain' }
+        {content_type: "text/plain"}
       )
       JSON.parse(resp.body)
     end
