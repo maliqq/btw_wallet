@@ -28,8 +28,11 @@ module BtcWallet
       change = total_in - amount - fee
 
       tx = Bitcoin::Tx.new
+
+      add_inputs(tx, selected_utxos)
       add_output(tx, to_address, amount)
       add_change_output(tx, address) if change > 0
+
       result = sign_inputs(tx, selected_utxos)
 
       logger.info(result.to_json)

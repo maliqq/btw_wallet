@@ -15,6 +15,16 @@ module BtcWallet
       [selected_utxos, total_in]
     end
 
+    def add_inputs(tx, selected_utxos)
+      selected_utxos.each do |utxo|
+        tx_in = Bitcoin::TxIn.new(
+          Bitcoin::OutPoint.new(utxo['txid'].rhex, utxo['vout']),
+          ''
+        )
+        tx.add_txin(tx_in)
+      end
+    end
+
     def add_output(tx, to_address, amount)
       script_pubkey = Bitcoin::Script.parse_from_addr(to_address)
       tx_out = Bitcoin::TxOut.new(amount, script_pubkey)
