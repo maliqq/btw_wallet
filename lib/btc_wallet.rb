@@ -11,9 +11,11 @@ Bitcoin.chain_params = :signet
 module BtcWallet
   class Error < StandardError; end
   
+  DEFAULT_MEMPOOL_BASE_ADDR = 'https://mempool.space/signet/api/'
   DEFAULT_FEE = 0.00001
 
   autoload :Wallet, 'btc_wallet/wallet'
+  autoload :MempoolClient, 'btc_wallet/mempool_client'
   autoload :StoreMethods, 'btc_wallet/store_methods'
   autoload :SendMethods, 'btc_wallet/send_methods'
 end

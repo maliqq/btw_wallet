@@ -2,53 +2,67 @@
 
 module BtcWallet
   module StoreMethods
+    WALLET_DIR_ENV = 'WALLET_DIR'
+    WALLET_NAME_ENV = 'WALLET_NAME'
+
+    # defaults
     def default_dir
-      Pathname.new(__dir__).join('../../priv').expand_path
+      ENV.fetch(WALLET_DIR_ENV) { Pathname.new(__dir__).join('../../priv').expand_path }
     end
 
     def default_name
-      `whoami`.strip
+      ENV.fetch(WALLET_NAME_ENV) { `whoami`.strip }
     end
 
     def default_logger
       Logger.new($stdout)
     end
 
+    def default_mempool_client
+      MempoolClient.new(
+        ENV.fetch('MEMPOOL_API_BASE_ADDR', DEFAULT_MEMPOOL_BASE_ADDR)
+      )
+    end
+
     def create_default!
-      create_wallet(
-        default_dir,
-        default_name,
+      new(
+        create_key(
+          default_dir,
+          default_name
+        ),
+        mempool_client: default_mempool_client,
         logger: default_logger
       )
     end
 
     def load_default!
-      load_wallet(
-        default_dir,
-        default_name,
+      new(
+        load_key(
+          default_dir,
+          default_name
+        ),
+        mempool_client: default_mempool_client,
         logger: default_logger
       )
     end
 
-    def create_wallet(dir, name, logger: )
-      key = Bitcoin::Key.generate
+    # keys
+    def create_key(dir, name)
+      Bitcoin::Key.generate.tap do |key|
+        dir.join("#{name}.key").tap do |f|
+          File.write(f, key.to_wif)
+          FileUtils.chmod(0600, f)
+        end
 
-      dir.join("#{name}.key").tap do |f|
-        File.write(f, key.to_wif)
-        FileUtils.chmod(0600, f)
+        dir.join("#{name}.pub").tap do |f|
+          File.write(f, key.pubkey)
+          FileUtils.chmod(0644, f)
+        end
       end
-
-      dir.join("#{name}.pub").tap do |f|
-        File.write(f, key.pubkey)
-        FileUtils.chmod(0644, f)
-      end
-
-      new(key, logger:)
     end
 
-    def load_wallet(dir, name, logger:)
-      key = Bitcoin::Key.from_wif(File.read(dir.join("#{name}.key")).strip)
-      new(key, logger:)
+    def load_key(dir, name)
+      Bitcoin::Key.from_wif(File.read(dir.join("#{name}.key")).strip)
     end
   end
 end

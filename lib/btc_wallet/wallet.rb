@@ -5,10 +5,11 @@ module BtcWallet
     extend StoreMethods
     include SendMethods
 
-    attr_reader :key, :logger
+    attr_reader :key, :mempool_client, :logger
     # @param key [Bitcoin::Key]
-    def initialize(key, logger:)
+    def initialize(key, mempool_client:, logger:)
       @key = key
+      @mempool_client = mempool_client
       @logger = logger
     end
 
@@ -17,18 +18,16 @@ module BtcWallet
     end
 
     def balance
-      resp = RestClient.get("https://mempool.space/signet/api/address/#{address}")
-      data = JSON.parse(resp)
+      data = mempool_client.address_info(address)
 
       data.dig('chain_stats', 'funded_txo_sum') - data.dig('chain_stats', 'spent_txo_sum')
     end
 
     def utxos
-      resp = RectClient.get("https://mempool.space/signet/api/address/#{address}/utxo")
-      JSON.parse(resp)
+      mempool_client.utxos(address)
     end
 
-    def send(to_address, amount)
+    def send_amount(to_address, amount)
       selected_utxos, total_in = prepare_utxos
       change = total_in - amount - fee
 
