@@ -2,9 +2,18 @@
 
 require_relative "btc_wallet/version"
 
+require 'rest-client'
+require 'bitcoin'
+require 'active_support/all'
+
+Bitcoin.chain_params = :signet
+
 module BtcWallet
   class Error < StandardError; end
   
+  DEFAULT_FEE = 0.00001
 
-  DEFAULT_COMISSION = 0.00001
+  autoload :Wallet, 'btc_wallet/wallet'
+  autoload :StoreMethods, 'btc_wallet/store_methods'
+  autoload :SendMethods, 'btc_wallet/send_methods'
 end
