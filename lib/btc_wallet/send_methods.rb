@@ -31,14 +31,14 @@ module BtcWallet
       tx.add_txout(tx_out)
     end
 
-    def add_change_output(tx, from_address, amount)
-      change_script = Bitcoin::Script.parse_from_addr(from_address)
+    def add_change_output(tx, amount)
+      change_script = Bitcoin::Script.parse_from_addr(address)
       tx.add_txout(Bitcoin::TxOut.new(amount, change_script))
     end
 
     def sign_inputs(tx, selected_utxos)
       selected_utxos.each_with_index do |utxo, i|
-        sighash = tx.sighash_for_witness(i, Bitcoin::Script.parse_from_addr(from_address), utxo["value"], Bitcoin::SIGHASH_TYPE[:all])
+        sighash = tx.sighash_for_witness(i, Bitcoin::Script.parse_from_addr(address), utxo["value"], Bitcoin::SIGHASH_TYPE[:all])
         signature = key.sign(sighash) + [Bitcoin::SIGHASH_TYPE[:all]].pack("C")
         witness = Bitcoin::Witness.new
         witness.stack << signature
