@@ -7,7 +7,7 @@ module BtcWallet
 
     # defaults
     def default_dir
-      ENV.fetch(WALLET_DIR_ENV) { File.expand_path("../../priv", __dir__) }
+      ENV.fetch(WALLET_DIR_ENV) { Pathname.new(__dir__).join("../../priv").expand_path }
     end
 
     def default_name

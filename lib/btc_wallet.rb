@@ -10,8 +10,11 @@ Bitcoin.chain_params = :signet
 
 module BtcWallet
   class Error < StandardError; end
+
   class InsufficientBalance < Error; end
+
   class NoUTXOsAvailable < Error; end
+
   class AmountTooSmall < Error; end
 
   DEFAULT_MEMPOOL_BASE_ADDR = "https://mempool.space/signet/api/"
