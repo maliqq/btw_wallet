@@ -3,6 +3,7 @@ require "em/pure_ruby" # FIXME
 require "dotenv"
 require "pp"
 require "pry"
+require "colorize"
 
 Dotenv.load(".env.local", ".env")
 
@@ -41,7 +42,9 @@ module BtwWallet
       wallet = BtcWallet::Wallet.load_default!
       tx = wallet.send_and_broadcast(to_address, options[:amount])
 
-      puts "Transaction ID: #{tx.txid} vsize: #{tx.vsize}"
+      puts "Transaction ID: #{tx.txid}"
+    rescue ::BtcWallet::AmountTooSmall
+      puts "Amount is too small! Try another amount".red
     end
   end
 end

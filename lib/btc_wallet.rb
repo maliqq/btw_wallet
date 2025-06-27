@@ -19,6 +19,7 @@ module BtcWallet
 
   DEFAULT_MEMPOOL_BASE_ADDR = "https://mempool.space/signet/api/"
   DEFAULT_FEE = 1_000 # satoshi
+  DEFAULT_FEE_RATE = 1
 
   autoload :Wallet, "btc_wallet/wallet"
   autoload :MempoolClient, "btc_wallet/mempool_client"

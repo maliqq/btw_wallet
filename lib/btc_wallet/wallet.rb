@@ -43,8 +43,15 @@ module BtcWallet
       end
     end
 
-    def send_and_broadcast(to_address, amount)
-      send_amount(to_address, amount).tap do |tx|
+    def send_amount_with_proportional_fee(to_address, amount, fee_rate)
+      dummy_tx = send_amount(to_address, amount)
+      new_fee = dummy_tx.vsize * fee_rate
+      logger.info "Sending to #{to_address} (amount=#{amount} fee=#{new_fee})"
+      send_amount(to_address, amount, new_fee)
+    end
+
+    def send_and_broadcast(to_address, amount, fee_rate = ::BtcWallet::DEFAULT_FEE_RATE)
+      send_amount_with_proportional_fee(to_address, amount, fee_rate).tap do |tx|
         mempool_client.broadcast(tx)
         logger.info("Broadcasted tx: #{tx.to_hex}")
       end
