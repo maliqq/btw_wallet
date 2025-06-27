@@ -7,11 +7,11 @@ module BtcWallet
 
     # defaults
     def default_dir
-      ENV.fetch(WALLET_DIR_ENV) { Pathname.new(__dir__).join("../../priv").expand_path }
+      ENV.fetch(WALLET_DIR_ENV) { File.expand_path("../../priv", __dir__) }
     end
 
     def default_name
-      ENV.fetch(WALLET_NAME_ENV) { `whoami`.strip }
+      ENV.fetch(WALLET_NAME_ENV) { Etc.getlogin }
     end
 
     def default_logger
@@ -62,7 +62,11 @@ module BtcWallet
     end
 
     def load_key(dir, name)
-      Bitcoin::Key.from_wif(File.read(dir.join("#{name}.key")).strip)
+      key_path = dir.join("#{name}.key")
+      unless File.exist?(key_path)
+        raise "Key file not found: #{key_path}"
+      end
+      Bitcoin::Key.from_wif(File.read(key_path).strip)
     end
   end
 end

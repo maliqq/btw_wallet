@@ -20,9 +20,15 @@ module BtcWallet
     def balance
       data = mempool_client.address_info(address)
 
-      data.dig("chain_stats", "funded_txo_sum") - data.dig("chain_stats", "spent_txo_sum")
+      data.dig("chain_stats", "funded_txo_sum").to_i - data.dig("chain_stats", "spent_txo_sum").to_i
     end
 
+    # Sends a specified amount to a given address, constructing and signing a Bitcoin transaction.
+    #
+    # @param to_address [String] the destination Bitcoin address
+    # @param amount [Integer] the amount to send in satoshis
+    # @param fee [Integer] the transaction fee in satoshis (default: ::BtcWallet::DEFAULT_FEE)
+    # @return [Bitcoin::Tx] the constructed and signed Bitcoin transaction
     def send_amount(to_address, amount, fee = ::BtcWallet::DEFAULT_FEE)
       selected_utxos, total_in = prepare_utxos(amount, fee)
       change = total_in - amount - fee
@@ -46,6 +52,9 @@ module BtcWallet
 
     private
 
+    # Retrieves UTXOs for the wallet address.
+    #
+    # @raise [NoUTXOsAvailable] if no UTXOs are available for the address
     def utxos
       mempool_client.utxos(address).tap do |list|
         raise NoUTXOsAvailable, "No UTXOs available" if list.empty?

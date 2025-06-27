@@ -41,7 +41,7 @@ module BtwWallet
       wallet = BtcWallet::Wallet.load_default!
       tx = wallet.send_and_broadcast(to_address, options[:amount])
 
-      puts "Transaction ID: #{tx.txid}"
+      puts "Transaction ID: #{tx.txid} vsize: #{tx.vsize}"
     end
   end
 end
