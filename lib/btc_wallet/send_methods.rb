@@ -2,7 +2,7 @@
 
 module BtcWallet
   module SendMethods
-    def prepare_utxos(fee = ::BtcWallet::DEFAULT_FEE)
+    def prepare_utxos(amount, fee)
       selected_utxos = []
       total_in = 0
 
@@ -12,38 +12,37 @@ module BtcWallet
         break if total_in >= amount + fee
       end
 
+      if total_in < amount + fee
+        raise InsufficientBalance, "Insufficient balance (required #{amount + fee}, have #{total_in})"
+      end
+
       [selected_utxos, total_in]
     end
 
     def add_inputs(tx, selected_utxos)
       selected_utxos.each do |utxo|
         tx_in = Bitcoin::TxIn.new(
-          Bitcoin::OutPoint.new(utxo["txid"].rhex, utxo["vout"]),
-          ""
+          out_point: Bitcoin::OutPoint.new(utxo["txid"].rhex, utxo["vout"])
         )
-        tx.add_txin(tx_in)
+        tx.in << tx_in
       end
     end
 
-    def add_output(tx, to_address, amount)
-      script_pubkey = Bitcoin::Script.parse_from_addr(to_address)
-      tx_out = Bitcoin::TxOut.new(amount, script_pubkey)
-      tx.add_txout(tx_out)
-    end
-
-    def add_change_output(tx, amount)
-      change_script = Bitcoin::Script.parse_from_addr(address)
-      tx.add_txout(Bitcoin::TxOut.new(amount, change_script))
+    def add_output(tx, address, amount)
+      script_pubkey = Bitcoin::Script.parse_from_addr(address)
+      tx.out << Bitcoin::TxOut.new(value: amount, script_pubkey:)
     end
 
     def sign_inputs(tx, selected_utxos)
       selected_utxos.each_with_index do |utxo, i|
-        sighash = tx.sighash_for_witness(i, Bitcoin::Script.parse_from_addr(address), utxo["value"], Bitcoin::SIGHASH_TYPE[:all])
+        sighash = tx.sighash_for_input(i, Bitcoin::Script.parse_from_addr(address), amount: utxo["value"])
         signature = key.sign(sighash) + [Bitcoin::SIGHASH_TYPE[:all]].pack("C")
-        witness = Bitcoin::Witness.new
+
+        witness = Bitcoin::ScriptWitness.new
         witness.stack << signature
         witness.stack << key.pubkey
-        tx.txins[i].witness = witness
+
+        tx.in[i].script_witness = witness
       end
     end
   end

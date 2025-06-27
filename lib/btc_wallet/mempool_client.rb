@@ -2,6 +2,7 @@ require "rest-client"
 
 module BtcWallet
   class MempoolClient
+    DUST_RESP = 'sendrawtransaction RPC error: {"code":-26,"message":"dust"}'
     attr_reader :base_addr
 
     def initialize(base_addr)
@@ -14,17 +15,19 @@ module BtcWallet
     end
 
     def utxos(address)
-      resp = RectClient.get("#{base_addr}/#{address}/utxo")
+      resp = RestClient.get("#{base_addr}/address/#{address}/utxo")
       JSON.parse(resp.body)
     end
 
-    def broadcast(hex)
+    def broadcast(tx)
       resp = RestClient.post(
         "#{base_addr}/tx",
-        hex,
+        tx.to_hex,
         {content_type: "text/plain"}
       )
-      JSON.parse(resp.body)
+      resp.body
+    rescue RestClient::BadRequest => e
+      raise AmountTooSmall, "Amount is too small for tx: #{tx.to_h.inspect}" if e.response.body == DUST_RESP
     end
   end
 end

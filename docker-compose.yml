@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: bundle exec thor btc:balance
+    volumes:
+      - wallet_data:/app/priv
+    environment:
+      - WALLET_NAME=test
+
+volumes:
+  wallet_data:

@@ -9,3 +9,4 @@
 
 /priv/*
 /.env*
+/vendor/bundle

@@ -21,6 +21,13 @@ module BtwWallet
       puts "Signet address: #{wallet.address}"
     end
 
+    desc "address", "Address of your wallet"
+    def address
+      wallet = BtcWallet::Wallet.load_default!
+
+      puts "Your address: #{wallet.address}"
+    end
+
     desc "balance", "Show current balance in sats for a wallet"
     def balance
       wallet = BtcWallet::Wallet.load_default!
@@ -32,7 +39,9 @@ module BtwWallet
     method_option :amount, aliases: "-n", type: :numeric, required: true, desc: "Amount in sats"
     def send(to_address)
       wallet = BtcWallet::Wallet.load_default!
-      wallet.send_amount(to_address, options[:amount])
+      tx = wallet.send_and_broadcast(to_address, options[:amount])
+
+      puts "Transaction ID: #{tx.txid}"
     end
   end
 end

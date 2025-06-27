@@ -23,25 +23,33 @@ module BtcWallet
       data.dig("chain_stats", "funded_txo_sum") - data.dig("chain_stats", "spent_txo_sum")
     end
 
-    def send_amount(to_address, amount)
-      selected_utxos, total_in = prepare_utxos
+    def send_amount(to_address, amount, fee = ::BtcWallet::DEFAULT_FEE)
+      selected_utxos, total_in = prepare_utxos(amount, fee)
       change = total_in - amount - fee
 
-      tx = Bitcoin::Tx.new
+      Bitcoin::Tx.new.tap do |tx|
+        add_inputs(tx, selected_utxos)
 
-      add_inputs(tx, selected_utxos)
-      add_output(tx, to_address, amount)
-      add_change_output(tx) if change > 0
+        add_output(tx, to_address, amount)
+        add_output(tx, address, change) if change > 0
 
-      result = sign_inputs(tx, selected_utxos)
+        sign_inputs(tx, selected_utxos)
+      end
+    end
 
-      logger.info(result.to_json)
+    def send_and_broadcast(to_address, amount)
+      send_amount(to_address, amount).tap do |tx|
+        mempool_client.broadcast(tx)
+        logger.info("Broadcasted tx: #{tx.to_hex}")
+      end
     end
 
     private
 
     def utxos
-      mempool_client.utxos(address)
+      mempool_client.utxos(address).tap do |list|
+        raise NoUTXOsAvailable, "No UTXOs available" if list.empty?
+      end
     end
   end
 end
